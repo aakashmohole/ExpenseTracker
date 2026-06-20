@@ -1,5 +1,7 @@
 package com.example.expenseTracker.controller;
 
+import com.example.expenseTracker.dto.LoginRequest;
+import com.example.expenseTracker.dto.LoginResponse;
 import com.example.expenseTracker.dto.RegisterRequest;
 import com.example.expenseTracker.services.AuthService;
 import lombok.RequiredArgsConstructor;
@@ -19,5 +21,15 @@ public class RegisterController {
     @PostMapping("/register")
     public ResponseEntity<String> register(@RequestBody RegisterRequest request){
         return ResponseEntity.ok(authService.register(request));
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest loginRequest){
+        return ResponseEntity.ok(authService.login(loginRequest));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<String> logout() {
+        return ResponseEntity.ok("Logged out");
     }
 }
