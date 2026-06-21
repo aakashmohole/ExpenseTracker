@@ -1,5 +1,8 @@
 package com.example.expenseTracker.config;
 
+import com.example.expenseTracker.entity.Transaction;
+import com.example.expenseTracker.entity.User;
+import com.example.expenseTracker.services.UserService;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
@@ -7,11 +10,17 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.List;
 
 @Service
 public class JwtService {
+    private final UserService userService;
     @Value("${jwt.secret}")
     private String secretKey;
+
+    public JwtService(UserService userService) {
+        this.userService = userService;
+    }
 
     public String generateToken(String email){
         return Jwts.builder()

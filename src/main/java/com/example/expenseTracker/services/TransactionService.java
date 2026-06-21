@@ -10,6 +10,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class TransactionService {
@@ -51,4 +53,43 @@ public class TransactionService {
         return "Transaction deleted successfully";
     }
 
+    public List<Transaction> getAllTransactions(){
+        User currUser = userService.getCurrentUser();
+        return transactionRepository.findByUser(currUser);
+    }
+
+    public Transaction getTransactionById(Integer transactionId){
+        User user = userService.getCurrentUser();
+
+        Transaction transaction = transactionRepository.findById(transactionId)
+                .orElseThrow(() -> new RuntimeException("Transaction not found"));
+
+        if(transaction.getUser().getId() != user.getId()){
+            throw new RuntimeException(
+                    "Access denied");
+        }
+        return transaction;
+    }
+
+    public String updateTransaction(Integer transactionId, TransactionRequest request){
+        logger.info("request for update transaction!");
+        User user = userService.getCurrentUser();
+
+        Transaction transaction = transactionRepository.findById(transactionId)
+                .orElseThrow(() -> new RuntimeException("Transaction not found"));
+
+        if(user.getId() != transaction.getUser().getId()){
+            logger.warn("Access denied");
+            throw new RuntimeException("Access denied");
+        }
+
+        transaction.setTitle(request.getTitle());
+        transaction.setAmount(request.getAmount());
+        transaction.setCategory(request.getCategory());
+        transaction.setTransactionDate(request.getTransactionDate());
+
+        transactionRepository.save(transaction);
+        logger.info("Transaction Updated Successfully");
+        return "Transaction Updated Successfully";
+    }
 }
