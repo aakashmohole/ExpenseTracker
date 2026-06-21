@@ -1,0 +1,12 @@
+<?variable-resolver class="org.zkoss.zkplus.spring.DelegatingVariableResolver"?>
+
+<window
+        apply="org.zkoss.bind.BindComposer"
+        viewModel="@id('vm') @init(dashboardViewModel)"
+        width="100%">
+
+    <vlayout>
+        <label value="@load(vm.welcomeMessage)"/>
+    </vlayout>
+
+</window>

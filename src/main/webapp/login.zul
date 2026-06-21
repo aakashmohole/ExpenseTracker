@@ -1,0 +1,22 @@
+<?variable-resolver class="org.zkoss.zkplus.spring.DelegatingVariableResolver"?>
+<window
+        apply="org.zkoss.bind.BindComposer"
+        viewModel="@id('vm') @init(loginViewModel)">
+
+    <vlayout>
+
+        <label value="Email"/>
+
+        <textbox value="@bind(vm.email)"/>
+
+        <label value="Password"/>
+
+        <textbox type="password"
+                 value="@bind(vm.password)"/>
+
+        <button label="Login"
+                onClick="@command('login')"/>
+
+    </vlayout>
+
+</window>
