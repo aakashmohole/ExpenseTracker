@@ -23,7 +23,7 @@ public class UserService {
 
     }
 
-    private String getCurrentEmail() {
+    public String getCurrentEmail() {
         Authentication authentication = SecurityContextHolder
                 .getContext()
                 .getAuthentication();

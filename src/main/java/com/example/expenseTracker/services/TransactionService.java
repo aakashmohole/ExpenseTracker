@@ -4,9 +4,10 @@ import com.example.expenseTracker.dto.TransactionRequest;
 import com.example.expenseTracker.entity.Transaction;
 import com.example.expenseTracker.entity.User;
 import com.example.expenseTracker.repository.TransactionRepository;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 
@@ -20,6 +21,7 @@ public class TransactionService {
     private final TransactionRepository transactionRepository;
     private final UserService userService;
 
+    @CacheEvict(value = "userTransactions", key = "@userService.getCurrentEmail()")
     public String addTransaction(TransactionRequest request){
         logger.info("Transaction add request received: {}", request.getTitle());
         User user = userService.getCurrentUser();
@@ -37,6 +39,7 @@ public class TransactionService {
         return "New Transaction added and id is" + transaction.getId();
     }
 
+    @CacheEvict(value = "userTransactions", key = "@userService.getCurrentEmail()")
     public String deleteTransaction(int transactionId){
         logger.info("Transaction Delete request received with id: {}", transactionId);
         User currentUser = userService.getCurrentUser();
@@ -53,7 +56,9 @@ public class TransactionService {
         return "Transaction deleted successfully";
     }
 
+    @Cacheable(value = "userTransactions", key = "@userService.getCurrentEmail()")
     public List<Transaction> getAllTransactions(){
+        logger.info("Loading transactions from database");
         User currUser = userService.getCurrentUser();
         return transactionRepository.findByUser(currUser);
     }
@@ -71,6 +76,7 @@ public class TransactionService {
         return transaction;
     }
 
+    @CacheEvict(value = "userTransactions", key = "@userService.getCurrentEmail()")
     public String updateTransaction(Integer transactionId, TransactionRequest request){
         logger.info("request for update transaction!");
         User user = userService.getCurrentUser();
