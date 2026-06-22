@@ -1,5 +1,8 @@
 <?variable-resolver class="org.zkoss.zkplus.spring.DelegatingVariableResolver"?>
-<window
+<window title="Login Window"
+        border="normal"
+        width="500px"
+        style="margin:100px auto;"
         apply="org.zkoss.bind.BindComposer"
         viewModel="@id('vm') @init(loginViewModel)">
 

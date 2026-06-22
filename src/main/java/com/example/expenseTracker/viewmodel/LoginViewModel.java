@@ -46,6 +46,7 @@ public class LoginViewModel {
                     "successMessage",
                     "Login Successful!"
             );
+            Sessions.getCurrent().setAttribute("user", email);
 
             Executions.sendRedirect("/dashboard.zul");
 

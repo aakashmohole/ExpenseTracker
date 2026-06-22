@@ -1,3 +1,3 @@
-USE expense_tracker
-SELECT * FROM transaction
-SELECT * FROM users
+USE expense_tracker;
+SELECT * FROM transaction;
+SELECT * FROM users;

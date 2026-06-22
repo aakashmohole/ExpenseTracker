@@ -1,12 +1,120 @@
 <?variable-resolver class="org.zkoss.zkplus.spring.DelegatingVariableResolver"?>
-
 <window
         apply="org.zkoss.bind.BindComposer"
-        viewModel="@id('vm') @init(dashboardViewModel)"
-        width="100%">
+        viewModel="@id('vm') @init(transactionViewModel)"
+        width="95%">
 
-    <vlayout>
-        <label value="@load(vm.welcomeMessage)"/>
+    <vlayout spacing="15px">
+
+        <label value="Expense Tracker Dashboard"
+               style="font-size:22px;font-weight:bold"/>
+
+        <!-- FORM -->
+
+        <groupbox mold="3d">
+            <caption label="Transaction"/>
+
+            <grid>
+                <rows>
+
+                    <row>
+                        <label value="Title"/>
+                        <textbox value="@bind(vm.title)"/>
+                    </row>
+
+                    <row>
+                        <label value="Amount"/>
+                        <doublebox value="@bind(vm.amount)"/>
+                    </row>
+
+                    <row>
+                        <label value="Category"/>
+                        <textbox value="@bind(vm.category)"/>
+                    </row>
+
+                    <row>
+                        <label value="Date"/>
+                        <textbox value="@bind(vm.localDate)"/>
+                    </row>
+
+                </rows>
+            </grid>
+
+            <hlayout>
+
+                <button
+                        label="Add"
+                        visible="@load(empty vm.selectedTransactionId)"
+                        onClick="@command('saveTransaction')"/>
+
+                <button
+                        label="Update"
+                        visible="@load(not empty vm.selectedTransactionId)"
+                        onClick="@command('updateTransaction')"/>
+
+            </hlayout>
+
+        </groupbox>
+
+        <!-- TRANSACTION LIST -->
+
+        <groupbox mold="3d">
+            <caption label="Transactions"/>
+
+            <listbox model="@load(vm.transactions)">
+
+                <listhead>
+                    <listheader label="ID"/>
+                    <listheader label="Title"/>
+                    <listheader label="Amount"/>
+                    <listheader label="Category"/>
+                    <listheader label="Date"/>
+                    <listheader label="Actions"/>
+                </listhead>
+
+                <template name="model">
+
+                    <listitem>
+
+                        <listcell label="@load(each.id)"/>
+                        <listcell label="@load(each.title)"/>
+                        <listcell label="@load(each.amount)"/>
+                        <listcell label="@load(each.category)"/>
+                        <listcell label="@load(each.transactionDate)"/>
+
+                        <listcell>
+
+                            <hlayout>
+
+                                <button
+                                        label="Edit"
+                                        onClick="@command(
+                                        'editTransaction',
+                                        transaction=each
+                                    )"/>
+
+                                <button
+                                        label="Delete"
+                                        onClick="@command(
+                                        'deleteTransaction',
+                                        id=each.id
+                                    )"/>
+
+                            </hlayout>
+
+                        </listcell>
+
+                    </listitem>
+
+                </template>
+
+            </listbox>
+
+        </groupbox>
+
+        <button label="Logout"
+                onClick="@command('logout')"/>
+
     </vlayout>
 
 </window>
