@@ -9,6 +9,30 @@
         <label value="Expense Tracker Dashboard"
                style="font-size:22px;font-weight:bold"/>
 
+        <groupbox mold="3d">
+            <caption label="Summary"/>
+
+            <hbox spacing="35px">
+                <vlayout>
+                    <label value="Total Income"/>
+                    <label value="@load(vm.totalIncome)"
+                           style="font-size:18px;font-weight:bold;color:green"/>
+                </vlayout>
+
+                <vlayout>
+                    <label value="Total Expense"/>
+                    <label value="@load(vm.totalExpense)"
+                           style="font-size:18px;font-weight:bold;color:red"/>
+                </vlayout>
+
+                <vlayout>
+                    <label value="Balance"/>
+                    <label value="@load(vm.balance)"
+                           style="font-size:18px;font-weight:bold"/>
+                </vlayout>
+            </hbox>
+        </groupbox>
+
         <!-- FORM -->
 
         <groupbox mold="3d">
@@ -25,6 +49,15 @@
                     <row>
                         <label value="Amount"/>
                         <doublebox value="@bind(vm.amount)"/>
+                    </row>
+
+                    <row>
+                        <label value="Type"/>
+                        <combobox readonly="true"
+                                  value="@bind(vm.transactionType)">
+                            <comboitem label="INCOME"/>
+                            <comboitem label="EXPENSE"/>
+                        </combobox>
                     </row>
 
                     <row>
@@ -61,12 +94,31 @@
         <groupbox mold="3d">
             <caption label="Transactions"/>
 
+            <hlayout spacing="10px">
+                <label value="Search"/>
+                <textbox value="@bind(vm.searchText)"
+                         onChange="@command('applyFilters')"/>
+
+                <label value="Filters"/>
+                <combobox readonly="true"
+                          value="@bind(vm.filterType)"
+                          onChange="@command('applyFilters')">
+                    <comboitem label="ALL"/>
+                    <comboitem label="INCOME"/>
+                    <comboitem label="EXPENSE"/>
+                </combobox>
+
+                <button label="Clear"
+                        onClick="@command('clearFilters')"/>
+            </hlayout>
+
             <listbox model="@load(vm.transactions)">
 
                 <listhead>
                     <listheader label="ID"/>
                     <listheader label="Title"/>
                     <listheader label="Amount"/>
+                    <listheader label="Type"/>
                     <listheader label="Category"/>
                     <listheader label="Date"/>
                     <listheader label="Actions"/>
@@ -78,7 +130,8 @@
 
                         <listcell label="@load(each.id)"/>
                         <listcell label="@load(each.title)"/>
-                        <listcell label="@load(each.amount)"/>
+                        <listcell label="@load(vm.getDisplayAmount(each))"/>
+                        <listcell label="@load(vm.getDisplayType(each))"/>
                         <listcell label="@load(each.category)"/>
                         <listcell label="@load(each.transactionDate)"/>
 

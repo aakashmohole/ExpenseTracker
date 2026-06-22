@@ -17,7 +17,10 @@ import org.zkoss.zk.ui.util.Clients;
 
 import javax.sql.DataSource;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
 
 @Getter
 @Setter
@@ -26,14 +29,24 @@ import java.util.List;
 public class TransactionViewModel {
     private final TransactionService transactionService;
     private final DataSource dataSource;
+    private List<Transaction> allTransactions = new ArrayList<>();
     private List<Transaction> transactions;
 
     private String title;
     private Double amount;
     private String category;
     private String localDate;
+    private String transactionType = "EXPENSE";
 
     private Integer selectedTransactionId;
+
+    private Double totalIncome = 0.0;
+    private Double totalExpense = 0.0;
+    private Double balance = 0.0;
+
+    private String searchText;
+    private String filterType = "ALL";
+
 
     public TransactionViewModel(TransactionService transactionService, DataSource dataSource) {
         this.transactionService = transactionService;
@@ -46,23 +59,29 @@ public class TransactionViewModel {
     }
 
     public void loadTransactions(){
-        transactions = transactionService.getAllTransactions();
+        allTransactions = transactionService.getAllTransactions();
+        updateSummary();
+        applyCurrentFilters();
     }
 
     //Add Transaction
     @Command
     @NotifyChange({
             "transactions",
+            "totalIncome",
+            "totalExpense",
+            "balance",
             "title",
             "amount",
             "category",
-            "localDate"
+            "localDate",
+            "transactionType"
     })
     public void saveTransaction(){
         TransactionRequest request = new TransactionRequest();
 
         request.setTitle(title);
-        request.setAmount(amount);
+        request.setAmount(getSignedAmount());
         request.setCategory(category);
         request.setTransactionDate(LocalDate.parse(localDate));
 
@@ -75,16 +94,20 @@ public class TransactionViewModel {
     @Command
     @NotifyChange({
             "transactions",
+            "totalIncome",
+            "totalExpense",
+            "balance",
             "title",
             "amount",
             "category",
             "localDate",
+            "transactionType",
             "selectedTransactionId"
     })
     public void updateTransaction(){
         TransactionRequest request = new TransactionRequest();
         request.setTitle(title);
-        request.setAmount(amount);
+        request.setAmount(getSignedAmount());
         request.setCategory(category);
         request.setTransactionDate(LocalDate.parse(localDate));
 
@@ -104,6 +127,7 @@ public class TransactionViewModel {
             "amount",
             "category",
             "localDate",
+            "transactionType",
             "selectedTransactionId"
     })
     public void editTransaction(
@@ -112,20 +136,25 @@ public class TransactionViewModel {
 
         selectedTransactionId = transaction.getId();
         title = transaction.getTitle();
-        amount = transaction.getAmount();
+        amount = Math.abs(transaction.getAmount());
         category = transaction.getCategory();
         localDate = transaction.getTransactionDate() != null
                 ? transaction.getTransactionDate().toString()
                 : null;
+        transactionType = transaction.getAmount() >= 0 ? "INCOME" : "EXPENSE";
     }
 
     @Command
     @NotifyChange({
             "transactions",
+            "totalIncome",
+            "totalExpense",
+            "balance",
             "title",
             "amount",
             "category",
             "localDate",
+            "transactionType",
             "selectedTransactionId"
     })
     public void deleteTransaction(
@@ -139,6 +168,32 @@ public class TransactionViewModel {
         }
 
         loadTransactions();
+    }
+
+    @Command
+    @NotifyChange("transactions")
+    public void applyFilters(){
+        applyCurrentFilters();
+    }
+
+    @Command
+    @NotifyChange({
+            "transactions",
+            "searchText",
+            "filterType"
+    })
+    public void clearFilters(){
+        searchText = null;
+        filterType = "ALL";
+        applyCurrentFilters();
+    }
+
+    public String getDisplayType(Transaction transaction) {
+        return transaction.getAmount() >= 0 ? "Income" : "Expense";
+    }
+
+    public Double getDisplayAmount(Transaction transaction) {
+        return Math.abs(transaction.getAmount());
     }
 
     @Command
@@ -161,6 +216,75 @@ public class TransactionViewModel {
         amount = null;
         category = null;
         localDate = null;
+        transactionType = "EXPENSE";
     }
+
+    private Double getSignedAmount() {
+        double absoluteAmount = Math.abs(Objects.requireNonNullElse(amount, 0.0));
+        return "INCOME".equals(transactionType) ? absoluteAmount : -absoluteAmount;
+    }
+
+    private void updateSummary() {
+        totalIncome = allTransactions.stream()
+                .mapToDouble(Transaction::getAmount)
+                .filter(value -> value > 0)
+                .sum();
+
+        totalExpense = allTransactions.stream()
+                .mapToDouble(Transaction::getAmount)
+                .filter(value -> value < 0)
+                .map(Math::abs)
+                .sum();
+
+        balance = totalIncome - totalExpense;
+    }
+
+    private void applyCurrentFilters() {
+        String normalizedSearch = searchText == null
+                ? ""
+                : searchText.trim().toLowerCase(Locale.ROOT);
+
+        transactions = allTransactions.stream()
+                .filter(transaction -> matchesType(transaction)
+                        && matchesSearch(transaction, normalizedSearch))
+                .toList();
+    }
+
+    private boolean matchesType(Transaction transaction) {
+        if (filterType == null || "ALL".equals(filterType)) {
+            return true;
+        }
+
+        if ("INCOME".equals(filterType)) {
+            return transaction.getAmount() > 0;
+        }
+
+        if ("EXPENSE".equals(filterType)) {
+            return transaction.getAmount() < 0;
+        }
+
+        return true;
+    }
+
+    private boolean matchesSearch(
+            Transaction transaction,
+            String normalizedSearch) {
+
+        if (normalizedSearch.isBlank()) {
+            return true;
+        }
+
+        return contains(transaction.getTitle(), normalizedSearch)
+                || contains(transaction.getCategory(), normalizedSearch)
+                || contains(String.valueOf(transaction.getAmount()), normalizedSearch)
+                || contains(String.valueOf(transaction.getTransactionDate()), normalizedSearch);
+    }
+
+    private boolean contains(String value, String normalizedSearch) {
+        return value != null
+                && value.toLowerCase(Locale.ROOT).contains(normalizedSearch);
+    }
+
+
 
 }
